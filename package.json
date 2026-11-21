@@ -23,7 +23,14 @@
     "lint:fix": "eslint . --fix",
     "verify": "npm run typecheck && npm run lint && npm test && npm run build",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:start": "supabase start && node scripts/db-sync-env.js",
+    "db:stop": "supabase stop",
+    "db:status": "supabase status",
+    "db:env": "node scripts/db-sync-env.js",
+    "db:reset": "node scripts/db-reset-safe.js",
+    "db:seed": "node scripts/db-seed-safe.js",
+    "dev:memory": "node scripts/dev-memory.js"
   },
   "keywords": [
     "stremio",
@@ -67,6 +74,7 @@
     "globals": "^17.14.0",
     "jest": "^30.5.2",
     "prettier": "^3.10.1",
+    "supabase": "^3.2.0",
     "tailwindcss": "^4.3.5",
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.73.0",

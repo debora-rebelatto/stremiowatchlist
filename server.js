@@ -1,3 +1,7 @@
+const { loadEnvironment } = require('./lib/envLoader');
+
+loadEnvironment();
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -87,9 +91,17 @@ if (!process.env.VERCEL && require.main === module) {
     console.log(
       `👉 Client Source: ${fs.existsSync(distPath) ? '⚛️ REACT BUILD (dist)' : '📁 STATIC (public)'}`
     );
-    console.log(
-      `👉 Database: ${userRepository.isSupabaseConfigured() ? '🟢 SUPABASE CLOUD ACTIVE (MULTI-USER)' : '🟡 LOCAL JSON'}`
-    );
+    const dbInfo =
+      typeof userRepository.getDatabaseInfo === 'function'
+        ? userRepository.getDatabaseInfo()
+        : null;
+    let dbLabel = `🟡 IN-MEMORY ONLY (NO PERSISTENCE) [env: ${dbInfo?.appEnv || 'development'}]`;
+    if (dbInfo?.dbTarget === 'local-docker') {
+      dbLabel = `🟢 LOCAL DOCKER SUPABASE (${dbInfo.host}) [env: ${dbInfo.appEnv}]`;
+    } else if (dbInfo?.dbTarget === 'supabase-cloud' || userRepository.isSupabaseConfigured()) {
+      dbLabel = `🔴 SUPABASE CLOUD (${dbInfo?.host || 'remote'}) [env: ${dbInfo?.appEnv || 'production'}]`;
+    }
+    console.log(`👉 Database: ${dbLabel}`);
     console.log(`=======================================================`);
   });
 }

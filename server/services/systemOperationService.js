@@ -17,11 +17,16 @@ const DEFAULT_EXCLUDED_USER_IDS = [
 ];
 
 function getHealthStatus() {
+  const dbInfo =
+    typeof userRepository.getDatabaseInfo === 'function' ? userRepository.getDatabaseInfo() : null;
+  const supabaseConfigured = userRepository.isSupabaseConfigured();
   return {
     status: 'ok',
     uptime: Math.round(process.uptime()),
     timestamp: new Date().toISOString(),
-    supabase: userRepository.isSupabaseConfigured(),
+    supabase: supabaseConfigured,
+    environment: dbInfo?.appEnv || process.env.APP_ENV || process.env.NODE_ENV || 'development',
+    dbTarget: dbInfo?.dbTarget || (supabaseConfigured ? 'supabase-cloud' : 'in-memory'),
   };
 }
 

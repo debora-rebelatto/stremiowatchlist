@@ -1,43 +1,8 @@
-import fs from 'fs';
-import path from 'path';
 import crypto from 'crypto';
+import { loadEnvironment } from '../utils/envLoader';
 
-// Garante que o .env esteja carregado antes de derivar as chaves (ignorado em testes Jest)
-const IS_TEST_ENV = process.env.NODE_ENV === 'test' || Boolean(process.env.JEST_WORKER_ID);
-const currentDir =
-  typeof __dirname !== 'undefined' ? __dirname : import.meta.dirname || process.cwd();
-const envCandidates = [
-  path.join(process.cwd(), '.env'),
-  path.join(currentDir, '..', '.env'),
-  path.join(currentDir, '..', '..', '.env'),
-];
-if (!IS_TEST_ENV) {
-  for (const ENV_FILE of envCandidates) {
-    if (fs.existsSync(ENV_FILE)) {
-      try {
-        const envLines = fs.readFileSync(ENV_FILE, 'utf-8').split(/\r?\n/);
-        for (const line of envLines) {
-          const trimmed = line.trim();
-          if (!trimmed || trimmed.startsWith('#')) continue;
-          const eqIdx = trimmed.indexOf('=');
-          if (eqIdx > 0) {
-            const key = trimmed.slice(0, eqIdx).trim();
-            const val = trimmed
-              .slice(eqIdx + 1)
-              .trim()
-              .replace(/^['"]|['"]$/g, '');
-            if (!process.env[key]) {
-              process.env[key] = val;
-            }
-          }
-        }
-        break;
-      } catch (err) {
-        console.warn('[Crypto] Failed to read local .env:', err);
-      }
-    }
-  }
-}
+// Ensure environment files are loaded before deriving encryption keys (skipped in Jest/cloud)
+loadEnvironment();
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12; // 96-bit IV recommended for GCM

@@ -175,4 +175,28 @@ describe('Lauren Tan Constraint Engineering: Architecture & Invariant Tests', ()
       }
     });
   });
+
+  describe('Level 5: Environment Isolation & Production Safety Invariants', () => {
+    it('forbids manual .env parsing in lib/db.js and cryptoService.ts (must use envLoader)', () => {
+      const dbSource = fs.readFileSync(path.join(__dirname, '..', 'lib', 'db.js'), 'utf8');
+      const cryptoSource = fs.readFileSync(
+        path.join(__dirname, '..', 'server', 'services', 'cryptoService.ts'),
+        'utf8'
+      );
+
+      expect(dbSource).toMatch(/require\(['"]\.\/envLoader['"]\)/);
+      expect(dbSource).toMatch(/assertSafeDatabaseTarget\(/);
+      expect(dbSource).not.toMatch(/readFileSync\([^)]*\.env/);
+
+      expect(cryptoSource).toMatch(/from\s+['"]\.\.\/utils\/envLoader['"]/);
+      expect(cryptoSource).not.toMatch(/readFileSync\([^)]*\.env/);
+    });
+
+    it('never exposes supabase-cloud as dbTarget during Jest runs from disk .env', () => {
+      jest.restoreAllMocks();
+      const dbInfo = db.getDatabaseInfo();
+      expect(dbInfo.dbTarget).not.toBe('supabase-cloud');
+      expect(dbInfo.dbTarget).toBe('in-memory');
+    });
+  });
 });
